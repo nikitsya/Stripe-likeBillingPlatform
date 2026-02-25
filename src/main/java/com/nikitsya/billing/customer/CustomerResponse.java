@@ -1,6 +1,3 @@
 package com.nikitsya.billing.customer;
 
-public record CustomerResponse(String name, String email) {
-    // TODO
-}
-
+public record CustomerResponse(Long id, String name, String email) { }
