@@ -2,11 +2,10 @@ package com.nikitsya.billing.customer;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Locale;
+import java.util.Optional;
 
 @RestController
 public class CustomerController {
@@ -24,6 +23,16 @@ public class CustomerController {
         );
         CustomerResponse response = new CustomerResponse(saved.getId(), saved.getName(), saved.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/v1/customers/{id}")
+    public ResponseEntity<CustomerResponse> getCustomer(@PathVariable Long id) {
+        Optional<Customer> customer = customerRepository.findById(id);
+        if (customer.isPresent()) {
+            CustomerResponse response = new CustomerResponse(customer.get().getId(), customer.get().getName(), customer.get().getEmail());
+            return ResponseEntity.ok().body(response);
+        }
+        return ResponseEntity.notFound().build();
     }
 }
 
