@@ -34,5 +34,13 @@ public class CustomerController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @DeleteMapping("/v1/customers/{id}")
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
+        Optional<Customer> customer = customerRepository.findById(id);
+        if (customer.isEmpty()) return ResponseEntity.notFound().build();
+        customerRepository.delete(customer.get());
+        return ResponseEntity.noContent().build();
+    }
 }
 
