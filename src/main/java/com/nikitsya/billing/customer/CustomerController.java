@@ -21,6 +21,10 @@ public class CustomerController {
 
     @PostMapping("/v1/customers")
     public ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CreateCustomerRequest request) {
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
+        if (customerRepository.existsByEmail(email)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build(); // 409
+        }
         Customer saved = customerRepository.save(
                 new Customer(request.name(), request.email().toLowerCase(Locale.ROOT))
         );
