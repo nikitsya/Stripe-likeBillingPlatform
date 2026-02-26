@@ -1,5 +1,7 @@
 package com.nikitsya.billing.customer;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +21,7 @@ public class CustomerController {
     }
 
     @PostMapping("/v1/customers")
-    public ResponseEntity<CustomerResponse> createCustomer(@RequestBody CreateCustomerRequest request) {
+    public ResponseEntity<CustomerResponse> createCustomer(@Valid @RequestBody CreateCustomerRequest request) {
         Customer saved = customerRepository.save(
                 new Customer(request.name(), request.email().toLowerCase(Locale.ROOT))
         );
@@ -37,14 +39,6 @@ public class CustomerController {
         return ResponseEntity.notFound().build();
     }
 
-    @DeleteMapping("/v1/customers/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
-        Optional<Customer> customer = customerRepository.findById(id);
-        if (customer.isEmpty()) return ResponseEntity.notFound().build();
-        customerRepository.delete(customer.get());
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/v1/customers")
     public ResponseEntity<List<CustomerResponse>> getAllCustomers() {
         List<Customer> customers = customerRepository.findAll();
@@ -53,6 +47,14 @@ public class CustomerController {
             response.add(new CustomerResponse(customer.getId(), customer.getName(), customer.getEmail()));
         }
         return ResponseEntity.ok().body(response);
+    }
+
+    @DeleteMapping("/v1/customers/{id}")
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
+        Optional<Customer> customer = customerRepository.findById(id);
+        if (customer.isEmpty()) return ResponseEntity.notFound().build();
+        customerRepository.delete(customer.get());
+        return ResponseEntity.noContent().build();
     }
 }
 
