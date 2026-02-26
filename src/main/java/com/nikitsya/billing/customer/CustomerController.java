@@ -4,6 +4,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -41,6 +43,16 @@ public class CustomerController {
         if (customer.isEmpty()) return ResponseEntity.notFound().build();
         customerRepository.delete(customer.get());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/v1/customers")
+    public ResponseEntity<List<CustomerResponse>> getAllCustomers() {
+        List<Customer> customers = customerRepository.findAll();
+        List<CustomerResponse> response = new ArrayList<>();
+        for (Customer customer : customers) {
+            response.add(new CustomerResponse(customer.getId(), customer.getName(), customer.getEmail()));
+        }
+        return ResponseEntity.ok().body(response);
     }
 }
 
