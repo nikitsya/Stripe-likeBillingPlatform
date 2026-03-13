@@ -11,17 +11,16 @@ import org.testcontainers.DockerClientFactory;
 @EnabledIf("isDockerAvailable")
 class BillingPlatformApplicationTests {
 
-	static boolean isDockerAvailable() {
-		try {
-			return DockerClientFactory.instance().isDockerAvailable();
-		}
-		catch (Exception ex) {
-			return false;
-		}
-	}
+    static boolean isDockerAvailable() {
+        try {
+            return DockerClientFactory.instance().isDockerAvailable();
+        } catch (Exception ex) {
+            return false;
+        }
+    }
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }

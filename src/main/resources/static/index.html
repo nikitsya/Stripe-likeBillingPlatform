@@ -1,52 +1,111 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Billing Platform Demo</title>
     <style>
-        body { font-family: sans-serif; max-width: 520px; margin: 40px auto; padding: 0 16px; }
-        form { display: grid; gap: 12px; }
-        input, button { padding: 10px; font-size: 16px; }
-        #result { margin-top: 16px; white-space: pre-wrap; }
+        body {
+            font-family: sans-serif;
+            max-width: 520px;
+            margin: 40px auto;
+            padding: 0 16px;
+        }
+
+        form {
+            display: grid;
+            gap: 12px;
+        }
+
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        #result {
+            margin-top: 16px;
+            white-space: pre-wrap;
+        }
     </style>
 </head>
 <body>
-    <h1>Create customer</h1>
+<h1>Create customer</h1>
 
-    <form id="customerForm">
-        <label for="name"></label><input id="name" name="name" placeholder="Name" required />
-        <label for="email"></label><input id="email" name="email" type="email" placeholder="Email" required />
-        <button type="submit">Create</button>
-    </form>
+<form id="customerForm">
+    <label for="name"></label><input id="name" name="name" placeholder="Name" required/>
+    <label for="email"></label><input id="email" name="email" placeholder="Email" required type="email"/>
+    <button type="submit">Create</button>
+</form>
 
-    <div id="result"></div>
+<div id="result"></div>
 
-    <script>
-        const form = document.getElementById("customerForm");
-        const result = document.getElementById("result");
+<script>
+    const form = document.getElementById("customerForm");
+    const result = document.getElementById("result");
+    const customerEndpoint = "v1/customers";
 
-        form.addEventListener("submit", async (e) => {
-          e.preventDefault();
+    function buildCandidateUrls() {
+      const contextAwareUrl = new URL(customerEndpoint, window.location.href).toString();
+      const rootUrl = `${window.location.origin}/v1/customers`;
+      const localhostUrl = "http://localhost:8080/v1/customers";
+      const urls = [contextAwareUrl];
 
-          const payload = {
-            name: document.getElementById("name").value,
-            email: document.getElementById("email").value
-          };
+      if (rootUrl !== contextAwareUrl) {
+        urls.push(rootUrl);
+      }
+      if (window.location.origin !== "http://localhost:8080") {
+        urls.push(localhostUrl);
+      }
 
-          try {
-            const response = await fetch("/v1/customers", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload)
-            });
+      return urls;
+    }
 
-            const text = await response.text();
-            result.textContent = `Status: ${response.status}\nBody: ${text}`;
-          } catch (err) {
-            result.textContent = `Request failed: ${err}`;
+    async function createCustomer(payload) {
+      const candidateUrls = buildCandidateUrls();
+      let lastResult = null;
+
+      for (const url of candidateUrls) {
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          const body = await response.text();
+          if (response.status === 404 && url !== candidateUrls[candidateUrls.length - 1]) {
+            lastResult = { status: response.status, body, url };
+            continue;
           }
-        });
-    </script>
+
+          return { status: response.status, body, url };
+        } catch (error) {
+          lastResult = { error, url };
+        }
+      }
+
+      return lastResult;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const payload = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value
+      };
+
+      try {
+        const response = await createCustomer(payload);
+        if (response.error) {
+          result.textContent = `Request failed via ${response.url}: ${response.error}`;
+          return;
+        }
+        result.textContent = `URL: ${response.url}\nStatus: ${response.status}\nBody: ${response.body}`;
+      } catch (err) {
+        result.textContent = `Request failed: ${err}`;
+      }
+    });
+</script>
 </body>
 </html>
